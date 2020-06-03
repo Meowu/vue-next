@@ -4,8 +4,7 @@ import {
   ReactiveEffect,
   pauseTracking,
   resetTracking,
-  shallowReadonly,
-  markRaw
+  shallowReadonly
 } from '@vue/reactivity'
 import {
   ComponentPublicInstance,
@@ -82,6 +81,7 @@ export interface FunctionalComponent<
   props?: ComponentPropsOptions<P>
   emits?: E | (keyof E)[]
   inheritAttrs?: boolean
+  inheritRef?: boolean
   displayName?: string
 }
 
@@ -313,7 +313,7 @@ export interface ComponentInternalInstance {
    * hmr marker (dev only)
    * @internal
    */
-  renderUpdated?: boolean
+  hmrUpdated?: boolean
 }
 
 const emptyAppContext = createAppContext()
@@ -464,7 +464,7 @@ function setupStatefulComponent(
   instance.accessCache = {}
   // 1. create public instance / render proxy
   // also mark it raw so it's never observed
-  instance.proxy = markRaw(new Proxy(instance.ctx, PublicInstanceProxyHandlers))
+  instance.proxy = new Proxy(instance.ctx, PublicInstanceProxyHandlers)
   if (__DEV__) {
     exposePropsOnRenderContext(instance)
   }
@@ -550,7 +550,6 @@ let compile: CompileFunction | undefined
 /**
  * For runtime-dom to register the compiler.
  * Note the exported method uses any to avoid d.ts relying on the compiler types.
- * @internal
  */
 export function registerRuntimeCompiler(_compile: any) {
   compile = _compile
